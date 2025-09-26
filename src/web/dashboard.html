@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏛️ ZANTARA PHI Monastery - Dashboard Aurea</title>
+    <style>
+        :root {
+            --phi: 1.618033988749895;
+            --golden-ratio: calc(1 / var(--phi));
+            --primary: #d4af37;
+            --secondary: #b8860b;
+            --background: #1a1a1a;
+            --surface: #2d2d2d;
+            --text: #f5f5f5;
+            --accent: #ffd700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.618;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            text-align: center;
+            color: var(--background);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .phi-value {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            height: calc(100vh - 120px);
+        }
+
+        .sidebar {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .main-content {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: rgba(212, 175, 55, 0.2);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+        }
+
+        .results-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .golden-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .section-bar {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 30px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            color: var(--background);
+            font-size: 0.85rem;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            transition: width 0.5s ease;
+        }
+
+        .keywords-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .keyword-item {
+            background: rgba(212, 175, 55, 0.15);
+            border-radius: 6px;
+            padding: 0.75rem;
+            border-left: 3px solid var(--primary);
+        }
+
+        .keyword-text {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .keyword-stats {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+        }
+
+        .patterns-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .pattern-item {
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .pattern-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-name {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .pattern-score {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+        }
+
+        .pattern-matches {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .golden-ratio-viz {
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .ratio-bar {
+            height: 20px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--primary) 38.2%,
+                var(--accent) 61.8%,
+                transparent 100%);
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .ratio-marker {
+            position: absolute;
+            top: -5px;
+            width: 2px;
+            height: 30px;
+            background: var(--text);
+            transition: left 0.5s ease;
+        }
+
+        .error-message {
+            background: #ff4444;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .success-message {
+            background: #44aa44;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: var(--background);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .keywords-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🏛️ ZANTARA PHI Monastery Dashboard</h1>
+        <div class="phi-value">φ = 1.618033988749895</div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📄</div>
+                <h3>Analisi Documento</h3>
+                <p>Trascina un file di testo qui<br>oppure clicca per selezionare</p>
+                <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.json">
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="processingTime">-</div>
+                    <div class="stat-label">Processing Time (ms)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="goldenRatio">-</div>
+                    <div class="stat-label">Golden Ratio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="complexity">-</div>
+                    <div class="stat-label">Complexity</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="confidence">-</div>
+                    <div class="stat-label">Confidence</div>
+                </div>
+            </div>
+
+            <div class="golden-ratio-viz">
+                <h4>📊 Golden Ratio Visualization</h4>
+                <div class="ratio-bar">
+                    <div class="ratio-marker" id="ratioMarker"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 0.5rem;">
+                    <span>0</span>
+                    <span style="color: var(--primary);">38.2%</span>
+                    <span style="color: var(--accent);">61.8%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+
+            <button class="btn" onclick="generateDemo()">
+                🎯 Genera Demo
+            </button>
+        </aside>
+
+        <main class="main-content">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analisi in corso con algoritmi aurei...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <div id="results" style="display: none;">
+                <div class="results-section">
+                    <h2 class="section-title">
+                        📋 Sezioni Auree
+                        <span id="sectionsCount" style="font-size: 0.8rem; opacity: 0.8;"></span>
+                    </h2>
+                    <div class="golden-sections" id="sectionsContainer"></div>
+                </div>
+
+                <div class="results-section">
+                    <h2 class="section-title">
+                        🔑 Keywords TF-IDF
+                        <span id="keywordsCount" style="font-size: 0.8rem; opacity: 0.8;"></span>
+                    </h2>
+                    <div class="keywords-grid" id="keywordsContainer"></div>
+                </div>
+
+                <div class="results-section">
+                    <h2 class="section-title">
+                        🔍 Pattern Frattali
+                        <span id="patternsCount" style="font-size: 0.8rem; opacity: 0.8;"></span>
+                    </h2>
+                    <div class="patterns-list" id="patternsContainer"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const PHI = 1.618033988749895;
+
+        // Demo data per testing
+        const demoText = `Machine Learning e Intelligenza Artificiale stanno rivoluzionando il mondo tecnologico.
+
+Il deep learning utilizza reti neurali complesse per il pattern recognition avanzato. Gli algoritmi di natural language processing analizzano grandi volumi di dati testuali.
+
+Contatti di ricerca:
+- Email: research@ai-lab.com
+- Website: https://www.ai-research.org
+- Data progetto: 15/03/2024
+- Budget: €75,000 per sviluppo AI-2024
+
+Marco Rossi e Luigi Verdi collaborano su progetti innovativi di machine learning. L'indirizzo IP del server di sviluppo è 192.168.1.100 con accesso sicuro.
+
+La ricerca continua con focus su algoritmi deterministici e proporzioni auree per l'ottimizzazione delle performance.`;
+
+        // Simulated analysis function (in una vera implementazione, questo chiamerebbe la pipeline)
+        function simulateAnalysis(text) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const words = text.split(/\s+/).filter(w => w.length > 2);
+                    const sections = [
+                        { content: text.substring(0, Math.floor(text.length * 0.382)), ratio: 0.382, importance: 1 },
+                        { content: text.substring(Math.floor(text.length * 0.382), Math.floor(text.length * 0.618)), ratio: 0.618, importance: 0.618 },
+                        { content: text.substring(Math.floor(text.length * 0.618)), ratio: 1.0, importance: 0.382 }
+                    ];
+
+                    const keywords = [
+                        { keyword: 'machine learning', score: 0.8234, frequency: 3, confidence: 0.923 },
+                        { keyword: 'intelligenza artificiale', score: 0.7156, frequency: 2, confidence: 0.887 },
+                        { keyword: 'deep learning', score: 0.6789, frequency: 2, confidence: 0.834 },
+                        { keyword: 'pattern recognition', score: 0.5234, frequency: 1, confidence: 0.756 },
+                        { keyword: 'neural networks', score: 0.4567, frequency: 1, confidence: 0.698 }
+                    ];
+
+                    const patterns = [
+                        { pattern: 'Email complesse', frequency: 1, score: 0.892, matches: [{ text: 'research@ai-lab.com' }] },
+                        { pattern: 'URL', frequency: 1, score: 0.756, matches: [{ text: 'https://www.ai-research.org' }] },
+                        { pattern: 'Nomi propri composti', frequency: 2, score: 0.634, matches: [{ text: 'Marco Rossi' }, { text: 'Luigi Verdi' }] },
+                        { pattern: 'Date', frequency: 1, score: 0.543, matches: [{ text: '15/03/2024' }] }
+                    ];
+
+                    resolve({
+                        sections,
+                        keywords,
+                        patterns,
+                        summary: {
+                            goldenRatio: 0.7234,
+                            complexity: 0.8156,
+                            confidence: 0.8923,
+                            processingTime: Math.floor(Math.random() * 50) + 10
+                        }
+                    });
+                }, 1500);
+            });
+        }
+
+        // Upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        async function handleFile(file) {
+            if (!file.type.startsWith('text/') && !file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
+                showError('Seleziona un file di testo (.txt, .md)');
+                return;
+            }
+
+            try {
+                const text = await file.text();
+                await analyzeText(text);
+                showSuccess(`File "${file.name}" analizzato con successo!`);
+            } catch (error) {
+                showError('Errore nella lettura del file: ' + error.message);
+            }
+        }
+
+        async function analyzeText(text) {
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const result = await simulateAnalysis(text);
+                displayResults(result);
+                showLoading(false);
+            } catch (error) {
+                showError('Errore nell\'analisi: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        function displayResults(result) {
+            const { sections, keywords, patterns, summary } = result;
+
+            // Update stats
+            document.getElementById('processingTime').textContent = summary.processingTime;
+            document.getElementById('goldenRatio').textContent = summary.goldenRatio.toFixed(3);
+            document.getElementById('complexity').textContent = summary.complexity.toFixed(3);
+            document.getElementById('confidence').textContent = summary.confidence.toFixed(3);
+
+            // Update golden ratio visualization
+            const marker = document.getElementById('ratioMarker');
+            marker.style.left = (summary.goldenRatio * 100) + '%';
+
+            // Display sections
+            const sectionsContainer = document.getElementById('sectionsContainer');
+            document.getElementById('sectionsCount').textContent = `(${sections.length})`;
+            sectionsContainer.innerHTML = sections.map((section, i) => `
+                <div class="section-bar" style="width: ${section.ratio * 100}%;">
+                    Sezione ${i + 1} - ${(section.ratio * 100).toFixed(1)}% - Imp: ${section.importance.toFixed(3)}
+                </div>
+            `).join('');
+
+            // Display keywords
+            const keywordsContainer = document.getElementById('keywordsContainer');
+            document.getElementById('keywordsCount').textContent = `(${keywords.length})`;
+            keywordsContainer.innerHTML = keywords.map(kw => `
+                <div class="keyword-item">
+                    <div class="keyword-text">${kw.keyword}</div>
+                    <div class="keyword-stats">
+                        Score: ${kw.score.toFixed(3)} | Freq: ${kw.frequency} | Conf: ${kw.confidence.toFixed(3)}
+                    </div>
+                </div>
+            `).join('');
+
+            // Display patterns
+            const patternsContainer = document.getElementById('patternsContainer');
+            document.getElementById('patternsCount').textContent = `(${patterns.length})`;
+            patternsContainer.innerHTML = patterns.map(pattern => `
+                <div class="pattern-item">
+                    <div class="pattern-header">
+                        <div class="pattern-name">${pattern.pattern}</div>
+                        <div class="pattern-score">${pattern.score.toFixed(3)}</div>
+                    </div>
+                    <div class="pattern-matches">
+                        Freq: ${pattern.frequency} | Matches: ${pattern.matches.map(m => `"${m.text}"`).join(', ')}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function generateDemo() {
+            analyzeText(demoText);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => successDiv.style.display = 'none', 3000);
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Auto-generate demo on load
+        window.addEventListener('load', () => {
+            setTimeout(() => generateDemo(), 1000);
+        });
+    </script>
+</body>
+</html>
