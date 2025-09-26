@@ -1,0 +1,21 @@
+{
+  "name": "zantara_phi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ZANTARA PHI - Monastero Digitale (φ)",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/index.ts",
+    "split": "RUN_AS_CLI=1 tsx src/modules/golden/text-splitter.ts",
+    "ritual": "tsx src/rituals/daily-ritual.ts",
+    "orchestra:demo": "tsx src/ai-orchestra/orchestra.ts --demo",
+    "test": "vitest run",
+    "test:golden": "vitest run --reporter=dot"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.1"
+  }
+}

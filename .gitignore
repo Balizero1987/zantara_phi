@@ -1,0 +1,18 @@
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*.local
+.vscode/
+.idea/
+.DS_Store
+npm-debug.log*
+yarn-*.log
+.tmp/
+.cache/
+# modelli locali
+ollama/
+models/
+# keep example env
+!.env.example

@@ -1,0 +1,1 @@
+console.log("ZANTARA PHI — pronto. Usa npm run split <file> o npm run ritual.");
