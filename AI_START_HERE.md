@@ -4,18 +4,24 @@
 **Project**: ZANTARA PHI - Monastero Digitale
 **Philosophy**: Genera con AI premium (Claude/GPT), esegui con codice deterministico (φ)
 **Location**: `/Users/antonellosiano/Desktop/ZANTARA PHI/monastery-stack/`
-**Status**: DEVELOPMENT - Primo modulo aureo operativo
+**Status**: DEVELOPMENT - Moduli aurei core + pipeline e WebUI operativi
 
 ## ARCHITETTURA CORE
 ✅ **OPERATIVO**:
 - TypeScript puro, zero dipendenze runtime
 - GoldenTextSplitter con proporzioni auree
+- GoldenKeywordExtractor (TF-IDF locale)
+- GoldenPatternMatcher (geometria frattale)
+- GoldenDocumentClassifier (classificazione deterministica)
+- GoldenCache + GoldenPipeline
+- Web dashboard + API REST (http://localhost:3618)
 - Test suite Vitest
 - Fallback deterministico per Orchestra
 
 🟡 **IN SVILUPPO**:
-- GoldenDocumentClassifier
-- Cache aurea persistente
+- Migliorie cache/pipeline (persistenza configurabile, autoscaling)
+- Watch folder per analisi automatica documenti
+- Esportazione risultati (PDF/JSON) direttamente dalla pipeline
 
 ## FILOSOFIA CHIAVE
 ```typescript
@@ -42,7 +48,10 @@ npm run test:golden  # Verifica moduli aurei
 echo "Test\n\nProva" > test.txt
 npm run split test.txt
 
-# 4. Vedi il rituale
+# 4. Classificatore aureo
+npm run classify test.txt -- --json
+
+# 5. Vedi il rituale
 npm run ritual
 ```
 
@@ -75,17 +84,17 @@ Ogni modulo deve:
 
 ### 2. Prompt esempio
 ```
-Genera un GoldenDocumentClassifier che:
-- Classifica testi in categorie (invoice, email, contract, report)
-- Usa keyword weighted by Fibonacci
-- Restituisce {type, confidence, features}
-- TypeScript, export class GoldenDocumentClassifier
+Genera un nuovo modulo aureo (es. GoldenSentimentAnalyzer) che:
+- Funziona offline con regole deterministiche
+- Usa pesi basati su Fibonacci / φ
+- Restituisce dati strutturati ({score, confidence, features})
+- Espone classi/funzioni TypeScript pronte per i test
 ```
 
 ### 3. Salva e testa
 ```bash
-# Salva in src/modules/golden/document-classifier.ts
-# Crea test in src/modules/golden/document-classifier.test.ts
+# Salva in src/modules/golden/<nuovo-modulo>.ts
+# Crea test in src/modules/golden/<nuovo-modulo>.test.ts
 npm run test:golden
 ```
 
@@ -93,11 +102,22 @@ npm run test:golden
 
 ```
 src/modules/golden/
-├── text-splitter.ts       # ✅ Divide con proporzioni auree
-├── document-classifier.ts # 🔜 Classifica senza ML
-├── keyword-extractor.ts   # 🔜 TF-IDF locale
-└── pattern-matcher.ts     # 🔜 Geometria frattale
+├── text-splitter.ts       # ✅ Divisione aurea deterministica
+├── keyword-extractor.ts   # ✅ TF-IDF locale con pesi Fibonacci
+├── pattern-matcher.ts     # ✅ Pattern frattali multi-livello
+├── document-classifier.ts # ✅ Classificazione deterministica
+├── cache.ts               # ✅ Cache aurea con decay φ
+└── pipeline.ts            # ✅ Orchestrazione completa
 ```
+
+## Automazione Watch & Export
+
+```bash
+mkdir -p incoming exports
+WATCH_FORMATS=json npm run watch
+```
+
+Il watcher monitora i file `.txt`/`.md`, esegue la pipeline completa (classificatore incluso) e salva automaticamente gli output in JSON/PDF nella cartella `exports/`.
 
 ## WORKFLOW GIORNALIERO
 
@@ -133,8 +153,14 @@ src/modules/golden/
 ## COMANDI UTILI
 
 ```bash
+# Watch & Export
+# - Input: incoming/ (override con WATCH_INPUT_DIR)
+# - Output: exports/ (override con WATCH_OUTPUT_DIR)
+
 # Sviluppo
 npm run split <file>     # Test splitter
+npm run classify <file>  # Classificatore deterministic
+npm run watch            # Watch folder → exports
 npm run ritual           # Vedi workflow
 npm run orchestra:demo   # Demo fallback
 

@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { GoldenPipeline, PHI, AnalysisResult } from './pipeline';
+import { ExportFormat } from './exporter';
 
 const sampleText = `
 Machine Learning e Intelligenza Artificiale stanno rivoluzionando il mondo.
@@ -62,6 +66,7 @@ describe('GoldenPipeline', () => {
       expect(result).toHaveProperty('sections');
       expect(result).toHaveProperty('keywords');
       expect(result).toHaveProperty('patterns');
+      expect(result).toHaveProperty('classification');
       expect(result).toHaveProperty('summary');
       expect(result).toHaveProperty('cache');
 
@@ -79,6 +84,9 @@ describe('GoldenPipeline', () => {
       expect(result.summary.complexity).toBeGreaterThanOrEqual(0);
       expect(result.summary.confidence).toBeGreaterThanOrEqual(0);
       expect(result.summary.processingTime).toBeGreaterThan(0);
+
+      expect(result.classification).not.toBeNull();
+      expect(result.classification?.type).toBeDefined();
 
       // Verifica cache stats (cache disabilitata in questo test)
       expect(result.cache.hits).toBeGreaterThanOrEqual(0);
@@ -107,6 +115,7 @@ describe('GoldenPipeline', () => {
       expect(result.sections.length).toBeGreaterThan(0);
       expect(result.summary.processingTime).toBeGreaterThanOrEqual(0);
       expect(Number.isFinite(result.summary.goldenRatio)).toBe(true);
+      expect(result.classification).not.toBeNull();
     });
 
     it('gestisce testo vuoto', async () => {
@@ -116,6 +125,31 @@ describe('GoldenPipeline', () => {
       expect(result.keywords.length).toBe(0);
       expect(result.patterns.length).toBe(0);
       expect(result.summary.complexity).toBe(0);
+      expect(result.classification).not.toBeNull();
+    });
+
+    it('esporta analisi in formati multipli', async () => {
+      const dir = await fs.mkdtemp(join(tmpdir(), 'phi-export-'));
+      const exportFormats: ExportFormat[] = ['json', 'pdf'];
+
+      const result = await pipeline.analyze(sampleText, {
+        export: {
+          directory: dir,
+          formats: exportFormats,
+          fileName: 'sample-report'
+        }
+      });
+
+      expect(result.exports).toBeDefined();
+      const files = result.exports?.files ?? [];
+      expect(files.length).toBe(2);
+      for (const file of files) {
+        const stat = await fs.stat(file);
+        expect(stat.isFile()).toBe(true);
+        expect(stat.size).toBeGreaterThan(0);
+      }
+
+      await fs.rm(dir, { recursive: true, force: true });
     });
   });
 
@@ -127,6 +161,7 @@ describe('GoldenPipeline', () => {
       expect(result.sections!.length).toBeGreaterThan(0);
       expect(result.keywords).toBeUndefined();
       expect(result.patterns).toBeUndefined();
+      expect(result.classification).toBeUndefined();
     });
 
     it('analizza solo keywords quando richiesto', async () => {
@@ -136,6 +171,7 @@ describe('GoldenPipeline', () => {
       expect(result.keywords!.length).toBeGreaterThan(0);
       expect(result.sections).toBeUndefined();
       expect(result.patterns).toBeUndefined();
+      expect(result.classification).toBeUndefined();
     });
 
     it('analizza solo patterns quando richiesto', async () => {
@@ -145,6 +181,7 @@ describe('GoldenPipeline', () => {
       expect(result.patterns!.length).toBeGreaterThan(0);
       expect(result.sections).toBeUndefined();
       expect(result.keywords).toBeUndefined();
+      expect(result.classification).toBeUndefined();
     });
 
     it('analizza combinazioni di moduli', async () => {

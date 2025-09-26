@@ -9,7 +9,17 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@golden/*": ["src/modules/golden/*"],
+      "@orchestra/*": ["src/ai-orchestra/*"],
+      "@rituals/*": ["src/rituals/*"],
+      "@phi": ["src/modules/golden/constants.ts"]
+    },
+    "incremental": true,
+    "noUncheckedIndexedAccess": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "api"]
 }

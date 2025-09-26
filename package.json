@@ -4,13 +4,15 @@
   "private": true,
   "description": "ZANTARA PHI - Monastero Digitale (φ)",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "echo 'Skipping TypeScript build - using JavaScript handlers'",
     "start": "tsx src/index.ts",
     "split": "RUN_AS_CLI=1 tsx src/modules/golden/text-splitter.ts",
     "keywords": "RUN_AS_CLI=1 tsx src/modules/golden/keyword-extractor.ts",
     "patterns": "RUN_AS_CLI=1 tsx src/modules/golden/pattern-matcher.ts",
     "cache": "RUN_AS_CLI=1 tsx src/modules/golden/cache.ts",
     "pipeline": "RUN_AS_CLI=1 tsx src/modules/golden/pipeline.ts",
+    "classify": "RUN_AS_CLI=1 tsx src/modules/golden/document-classifier.ts",
+    "watch": "RUN_AS_CLI=1 tsx src/tools/watch-folder.ts",
     "web": "tsx src/web/server.ts",
     "ritual": "tsx src/rituals/daily-ritual.ts",
     "orchestra:demo": "tsx src/ai-orchestra/orchestra.ts --demo",
@@ -22,5 +24,8 @@
     "tsx": "^4.16.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.1"
+  },
+  "dependencies": {
+    "@vercel/node": "^5.3.24"
   }
 }

@@ -1,0 +1,45 @@
+# ZANTARA PHI - Systemd Service File
+# Place this file in /etc/systemd/system/zantara-phi.service
+# Then run: sudo systemctl daemon-reload && sudo systemctl enable zantara-phi
+
+[Unit]
+Description=ZANTARA PHI Monastery Server
+Documentation=https://github.com/your-repo/zantara-phi
+After=network.target
+
+[Service]
+Type=simple
+User=antonellosiano
+Group=staff
+WorkingDirectory=/Users/antonellosiano/Desktop/ZANTARA PHI/monastery-stack
+ExecStart=/usr/bin/npm run web
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+
+# Environment
+Environment=NODE_ENV=production
+Environment=PORT=3618
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/Users/antonellosiano/Desktop/ZANTARA PHI/monastery-stack
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zantara-phi
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

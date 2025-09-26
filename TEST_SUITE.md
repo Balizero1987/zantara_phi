@@ -3,8 +3,8 @@
 ## 🔑 Configurazione Base
 
 ```bash
-# Setup iniziale
-cd /Users/antonellosiano/Desktop/ZANTARA PHI/monastery-stack
+# Setup iniziale (repo clonato)
+cd zantara_phi
 npm install
 
 # Copia configurazione
@@ -32,7 +32,26 @@ npm run test:golden
 # Expected: 2/2 passing
 ```
 
-### 2. Rituale Giornaliero
+### 2. GoldenDocumentClassifier
+```bash
+# Test CLI classificatore
+echo "Invoice 1001 total due $450" > sample-invoice.txt
+npm run classify sample-invoice.txt
+
+# Output atteso (estratto):
+# 🔮 Golden Document Classifier (φ = 1.618033988749895)
+# Type: invoice
+# Confidence: >60%
+
+# JSON output
+echo "Subject: Team update\nFrom: zero@balizero.com" > sample-email.txt
+npm run classify sample-email.txt -- --json
+
+# Test unitari dedicati
+npx vitest run src/modules/golden/document-classifier.test.ts
+```
+
+### 3. Rituale Giornaliero
 ```bash
 npm run ritual
 
@@ -46,7 +65,7 @@ npm run ritual
 # ...
 ```
 
-### 3. Orchestra Demo (Fallback Deterministico)
+### 4. Orchestra Demo (Fallback Deterministico)
 ```bash
 npm run orchestra:demo
 
@@ -117,6 +136,19 @@ npm run test:golden
 # Con coverage
 npx vitest run --coverage
 ```
+
+## 🛠️ Automazione Watch & Export
+
+```bash
+mkdir -p incoming exports
+WATCH_FORMATS=json npm run watch
+```
+
+- Input di default: `incoming/` (override con `WATCH_INPUT_DIR`)
+- Output di default: `exports/` (override con `WATCH_OUTPUT_DIR`)
+- Formati supportati: `json`, `pdf` (override con `WATCH_FORMATS`)
+
+Il watcher utilizza la pipeline completa (classificatore incluso) e salva automaticamente gli export dei documenti osservati.
 
 ## 📈 Metriche Target
 

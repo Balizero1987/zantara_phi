@@ -1,9 +1,12 @@
 export const PHI = 1.618033988749895;
 
+import { join } from 'node:path';
 import { goldenSplit, GoldenSection } from './text-splitter';
 import { GoldenKeywordExtractor, KeywordResult } from './keyword-extractor';
 import { GoldenPatternMatcher, PatternMatch } from './pattern-matcher';
 import { GoldenCache, GoldenCacheFactory } from './cache';
+import { GoldenDocumentClassifier, ClassificationResult } from './document-classifier';
+import { exportAnalysis, ExportFormat } from './exporter';
 
 export type AnalysisResult = {
   input: {
@@ -14,6 +17,7 @@ export type AnalysisResult = {
   sections: GoldenSection[];
   keywords: KeywordResult[];
   patterns: PatternMatch[];
+  classification: ClassificationResult | null;
   summary: {
     goldenRatio: number;
     complexity: number;
@@ -25,6 +29,9 @@ export type AnalysisResult = {
     misses: number;
     efficiency: number;
   };
+  exports?: {
+    files: string[];
+  };
 };
 
 export type PipelineOptions = {
@@ -35,6 +42,19 @@ export type PipelineOptions = {
   cacheBasePath?: string;
   patternDepth?: number;
   keywordMinLength?: number;
+  includeClassifier?: boolean;
+  exportFormats?: ExportFormat[];
+  exportDirectory?: string;
+};
+
+export type AnalysisOverrides = {
+  includeClassifier?: boolean;
+  export?: {
+    formats?: ExportFormat[];
+    directory?: string;
+    fileName?: string;
+    metadata?: Record<string, unknown>;
+  };
 };
 
 export class GoldenPipeline {
@@ -46,6 +66,7 @@ export class GoldenPipeline {
     patterns: GoldenCache<PatternMatch[]>;
   } | null;
   private readonly options: Required<PipelineOptions>;
+  private classifier: GoldenDocumentClassifier | null;
 
   constructor(options: PipelineOptions = {}) {
     this.options = {
@@ -55,7 +76,10 @@ export class GoldenPipeline {
       enableCache: options.enableCache ?? true,
       cacheBasePath: options.cacheBasePath ?? '/tmp/golden-cache',
       patternDepth: options.patternDepth ?? 4,
-      keywordMinLength: options.keywordMinLength ?? 3
+      keywordMinLength: options.keywordMinLength ?? 3,
+      includeClassifier: options.includeClassifier ?? true,
+      exportFormats: options.exportFormats ?? [],
+      exportDirectory: options.exportDirectory ?? join(process.cwd(), 'exports')
     };
 
     // Inizializza moduli
@@ -68,6 +92,8 @@ export class GoldenPipeline {
       maxDepth: this.options.patternDepth,
       confidenceThreshold: 0.1
     });
+
+    this.classifier = this.options.includeClassifier ? new GoldenDocumentClassifier() : null;
 
     // Inizializza cache se abilitata
     if (this.options.enableCache) {
@@ -90,7 +116,7 @@ export class GoldenPipeline {
   /**
    * Analizza un testo attraverso tutti i moduli aurei
    */
-  async analyze(text: string): Promise<AnalysisResult> {
+  async analyze(text: string, overrides: AnalysisOverrides = {}): Promise<AnalysisResult> {
     const startTime = Date.now();
     const textHash = this.hashText(text);
 
@@ -105,6 +131,15 @@ export class GoldenPipeline {
     // 3. Pattern Matching con cache
     const patterns = await this.getPatterns(text, textHash, cacheStats);
 
+    const includeClassifier = overrides.includeClassifier ?? this.options.includeClassifier;
+    let classification: ClassificationResult | null = null;
+    if (includeClassifier) {
+      if (!this.classifier) {
+        this.classifier = new GoldenDocumentClassifier();
+      }
+      classification = this.classifier.classify(text);
+    }
+
     // 4. Calcola metriche auree integrate
     const summary = this.calculateSummary(sections, keywords, patterns, startTime);
 
@@ -114,7 +149,7 @@ export class GoldenPipeline {
       ? Math.round((cacheStats.hits / totalOperations) * 10000) / 10000
       : 0;
 
-    return {
+    const result: AnalysisResult = {
       input: {
         text: text.slice(0, 200) + (text.length > 200 ? '...' : ''), // Preview
         length: text.length,
@@ -123,9 +158,29 @@ export class GoldenPipeline {
       sections,
       keywords,
       patterns,
+      classification,
       summary,
       cache: cacheStats
     };
+
+    const exportFormats = overrides.export?.formats ?? this.options.exportFormats;
+    if (exportFormats && exportFormats.length) {
+      const directory = overrides.export?.directory ?? this.options.exportDirectory;
+      const fileName = overrides.export?.fileName;
+      const metadata = {
+        ...(overrides.export?.metadata ?? {}),
+        sourceLength: text.length
+      };
+      const exportResult = await exportAnalysis(result, {
+        directory,
+        fileName,
+        formats: exportFormats,
+        metadata
+      });
+      result.exports = { files: exportResult.files };
+    }
+
+    return result;
   }
 
   /**
@@ -133,7 +188,8 @@ export class GoldenPipeline {
    */
   async analyzePartial(
     text: string,
-    parts: { sections?: boolean; keywords?: boolean; patterns?: boolean }
+    parts: { sections?: boolean; keywords?: boolean; patterns?: boolean; classifier?: boolean },
+    overrides: AnalysisOverrides = {}
   ): Promise<Partial<AnalysisResult>> {
     const startTime = Date.now();
     const textHash = this.hashText(text);
@@ -159,8 +215,16 @@ export class GoldenPipeline {
       result.patterns = await this.getPatterns(text, textHash, cacheStats);
     }
 
+    const includeClassifier = overrides.includeClassifier ?? parts.classifier ?? false;
+    if (includeClassifier) {
+      if (!this.classifier) {
+        this.classifier = new GoldenDocumentClassifier();
+      }
+      result.classification = this.classifier.classify(text);
+    }
+
     // Calcola summary solo se abbiamo dati
-    if (result.sections || result.keywords || result.patterns) {
+    if (result.sections || result.keywords || result.patterns || result.classification) {
       result.summary = this.calculateSummary(
         result.sections || [],
         result.keywords || [],
@@ -317,7 +381,7 @@ export class GoldenPipeline {
     patterns: PatternMatch[],
     startTime: number
   ) {
-    const processingTime = Date.now() - startTime;
+    const processingTime = Math.max(1, Date.now() - startTime);
 
     // Golden ratio della distribuzione delle sezioni
     const sectionRatios = sections.map(s => s.ratio).sort((a, b) => b - a);
@@ -517,7 +581,11 @@ Data: 15/03/2024 | Budget: $50,000 per il progetto AI-2024.
       await pipeline.persistCaches();
 
     } catch (error) {
-      console.error('❌ Pipeline error:', error.message);
+      if (error instanceof Error) {
+        console.error('❌ Pipeline error:', error.message);
+      } else {
+        console.error('❌ Pipeline error:', error);
+      }
       process.exit(1);
     }
   })();

@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const PHI = 1.618033988749895;
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3618;
 
 // Initialize pipeline
 const pipeline = new GoldenPipeline({
